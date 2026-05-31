@@ -5,7 +5,7 @@ import DownloadForm from "./components/DownloadForm";
 import ProgressCard from "./components/ProgressCard";
 import "./App.css";
 
-const API = "http://localhost:8000";
+const API = "https://ytgrab-a9mt.onrender.com";
 
 export default function App() {
   const [isLoading, setIsLoading] = useState(false);
