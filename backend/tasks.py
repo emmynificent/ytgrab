@@ -51,6 +51,7 @@ def run_download(job_id, job_store, url, quality, is_playlist, starttime, endtim
         'progress_hooks': [make_progress_hook(job_store, job_id)],
         'ignoreerrors': True,
         'noplaylist': not is_playlist,
+        'cookiefile': 'cookies.txt'
     }
 
     if starttime and endtime:
@@ -89,6 +90,8 @@ def run_download(job_id, job_store, url, quality, is_playlist, starttime, endtim
         print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Starting download for job {job_id} with URL: {url}")
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(url, download=False)
+            if info is None:
+                raise Exception("Could not fetch video info. Check the URL and try again.")
             title = clean_filename(info.get('title', 'unknown_title'))
             print(f" Job {job_id} - downloading: {title}")
 

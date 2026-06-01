@@ -27,6 +27,7 @@ backend/venv/
 backend/__pycache__/
 backend/*.pyc
 backend/downloads/
+backend/cookies.txt
 
 # Node
 frontend/node_modules/
