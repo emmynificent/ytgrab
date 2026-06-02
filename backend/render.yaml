@@ -1,7 +1,0 @@
-buildCommand: |
-  apt-get update && apt-get install -y curl ncurses-bin ffmpeg
-  curl -fsSL https://deno.land/install.sh | sh
-  export PATH="$HOME/.deno/bin:$PATH"
-  pip install -r requirements.txt
-
-startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
