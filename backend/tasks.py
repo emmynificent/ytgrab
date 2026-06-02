@@ -52,7 +52,7 @@ def run_download(job_id, job_store, url, quality, is_playlist, starttime, endtim
         'outtmpl': f'{output_dir}/%(title)s.%(ext)s',
         'merge_output_format': 'mp4',
         'progress_hooks': [make_progress_hook(job_store, job_id)],
-        'ignoreerrors': False,
+        'ignoreerrors': True,
         'noplaylist': not is_playlist,
         'extractor_args': {
             'youtube': {
