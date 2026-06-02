@@ -37,74 +37,63 @@ def make_progress_hook(job_store, job_id):
             job_store[job_id]['status'] = 'processing'
 
     return progress_hook
-
-
 def run_download(job_id, job_store, url, quality, is_playlist, starttime, endtime):
     output_dir = "downloads"
     os.makedirs(output_dir, exist_ok=True)
 
     job_store[job_id]['status'] = 'running'
 
+    # Add Deno to PATH
+    deno_path = os.path.expanduser("~/.deno/bin")
+    if os.path.exists(deno_path):
+        os.environ["PATH"] = deno_path + os.pathsep + os.environ.get("PATH", "")
+
     ydl_opts = {
         'outtmpl': f'{output_dir}/%(title)s.%(ext)s',
         'merge_output_format': 'mp4',
         'progress_hooks': [make_progress_hook(job_store, job_id)],
-        'ignoreerrors': True,
+        'ignoreerrors': False,
         'noplaylist': not is_playlist,
-        'cookiefile': 'cookies.txt'
+        'extractor_args': {
+            'youtube': {
+                'player_client': ['web_safari', 'ios', 'android', 'web'],
+            }
+        },
+        'quiet': False,
+        'no_warnings': False,
     }
 
     if starttime and endtime:
-         ydl_opts['download_ranges'] = yt_dlp.utils.download_ranges_func(
-        None, [(starttime, endtime)]
-        ) 
-         ydl_opts['force_keyframes_at_cuts'] = True
+        ydl_opts['download_ranges'] = yt_dlp.utils.download_ranges_func(
+            None, [(starttime, endtime)]
+        )
+        ydl_opts['force_keyframes_at_cuts'] = True
 
     if quality == "best":
         ydl_opts['format'] = 'bestvideo+bestaudio/best'
-        ydl_opts['postprocessors'] = [{
-            'key': 'FFmpegVideoConvertor',
-            'preferedformat': 'mp4',
-        }]  
     elif quality == "1080":
         ydl_opts['format'] = 'bestvideo[height<=1080]+bestaudio/best[height<=1080]'
-        ydl_opts['postprocessors'] = [{
-            'key': 'FFmpegVideoConvertor',
-            'preferedformat': 'mp4',
-        }]
     elif quality == "720":
         ydl_opts['format'] = 'bestvideo[height<=720]+bestaudio/best[height<=720]'
-        ydl_opts['postprocessors'] = [{
-            'key': 'FFmpegVideoConvertor',
-            'preferedformat': 'mp4',
-        }]  
     elif quality == "audio":
         ydl_opts['format'] = 'bestaudio/best'
-        ydl_opts['postprocessors'] = [{
-            'key': 'FFmpegExtractAudio',
-            'preferredcodec': 'mp3',
-            'preferredquality': '192',
-        }]
+        ydl_opts['postprocessors'] = [{'key': 'FFmpegExtractAudio', 'preferredcodec': 'mp3'}]
 
-    try: 
-        print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Starting download for job {job_id} with URL: {url}")
+    try:
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            info = ydl.extract_info(url, download=False)
+            info = ydl.extract_info(url, download=True)
+            
             if info is None:
-                raise Exception("Could not fetch video info. Check the URL and try again.")
-            title = clean_filename(info.get('title', 'unknown_title'))
-            print(f" Job {job_id} - downloading: {title}")
+                raise Exception("Failed to extract video information. YouTube may be blocking access.")
 
-            ydl.download([url])
-        
-        job_store[job_id]['status'] = 'completed'
-        job_store[job_id]['title'] = title
-        job_store[job_id]['filename'] = f"{title}.mp4" if quality!= "audio" else f"{title}.mp3"
-
-        print(f"Job {job_id} completed successfully: {title}")
+            title = info.get('title', 'video')
+            job_store[job_id]['title'] = title
+            job_store[job_id]['status'] = 'completed'
 
     except Exception as e:
-        job_store[job_id]['status'] = 'error'
-        job_store[job_id]['error'] = str(e)
-        print(f"Job {job_id} failed with error: {str(e)}")
+        error_msg = str(e)
+        print(f"Download error: {error_msg}")
+        job_store[job_id]['status'] = 'failed'
+        job_store[job_id]['error'] = error_msg
+
 
