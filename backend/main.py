@@ -6,8 +6,7 @@ import os
 import uuid 
 from tasks import run_download, parse_time
 
-os.environ["PATH"] += os.pathsep + os.path.expanduer("~/.deno/bin")
-
+os.environ["PATH"] += os.pathsep + os.path.expanduser("~/.deno/bin")
 app = FastAPI()
 
 app.add_middleware(
