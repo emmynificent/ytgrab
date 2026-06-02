@@ -1,25 +1,24 @@
 FROM python:3.11-slim
 
-# Install system dependencies
+# Install system dependencies including those needed for Deno
 RUN apt-get update && apt-get install -y \
     curl \
     ffmpeg \
     ca-certificates \
+    unzip \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Deno using official binary method (more reliable)
-RUN curl -fsSL https://deno.land/x/install/install.sh | sh -s -- v2.2.0 && \
-    ln -s /root/.deno/bin/deno /usr/local/bin/deno
+# Install Deno (better method)
+RUN curl -fsSL https://deno.land/install.sh | DENO_INSTALL=/usr/local sh \
+    && deno --version
 
 WORKDIR /app
 
-# Copy requirements first for better caching
+# Copy and install Python requirements
 COPY requirements.txt .
-
-# Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy the rest of the code
+# Copy the rest of your code
 COPY . .
 
 EXPOSE $PORT
