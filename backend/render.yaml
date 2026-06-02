@@ -5,3 +5,9 @@ yt-downloader/
     ├── requirements.txt
     ├── render.yaml     
     └── venv/
+
+buildCommand: |
+apt-get update && apt-get install -y curl
+Curl -fsSL hhtps://deno.land/install.sh | sh
+export PATH="$HOME/ .deno/bin:$PATH"
+pip install -r requirements.txt
